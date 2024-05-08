@@ -16,34 +16,61 @@ pub struct HostMetricsNotificationEvent {
     pub available_memory: u64,
 }
 
+#[derive(DeserializeDict, SerializeDict, Type, Debug, Clone, PartialEq)]
+// `Type` treats `NotificationEvent` is an alias for `a{sv}`.
+#[zvariant(signature = "a{sv}")]
+pub struct PowerNotificationEvent {
+    pub status: String,
+    pub percentage: f32,
+}
+
+#[derive(DeserializeDict, SerializeDict, Type, Debug, Clone)]
+/// A wireless notification event.
+#[zvariant(signature = "a{sv}")]
+pub struct WirelessNotificationEvent {
+    pub signal_strength: String,
+    pub is_connected: bool,
+    pub is_enabled: bool,
+    pub frequency: String,
+    pub ssid: String,
+}
+
+#[derive(DeserializeDict, SerializeDict, Type, Debug)]
+// `Type` treats `BluetoothNotificationEvent` is an alias for `a{sv}`.
+#[zvariant(signature = "a{sv}")]
+pub struct BluetoothNotificationEvent {
+    pub is_connected: bool,
+    pub is_enabled: bool,
+}
+
 #[proxy(
-    interface = "org.zbus.MyGreeter",
-    default_service = "org.zbus.MyGreeter",
-    default_path = "/org/zbus/MyGreeter"
+    interface = "org.mechanix.services.Power",
+    default_service = "org.mechanix.services.Power",
+    default_path = "/org/mechanix/services/Power"
 )]
 trait GreeterClient {
     async fn greeter_name(&self) -> Result<String>;
 
-    #[zbus(signal)]
-    async fn notification(&self, name: &str) -> Result<()>;
+    // #[zbus(signal)]
+    // async fn notification(&self, name: &str) -> Result<()>;
 
     #[zbus(signal)]
-    async fn host_metrics(&self, event: HostMetricsNotificationEvent) -> Result<()>;
+    async fn notification(&self, event: PowerNotificationEvent) -> Result<()>;
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let conn = Connection::session().await?;
+    let conn = Connection::system().await?;
     let manager = GreeterClientProxy::new(&conn).await?;
 
-    let mut updated = manager.receive_host_metrics().await?;
+    let mut updated = manager.receive_notification().await?;
 
     //  we need to check for update in loop
 
     while let Some(signal) = updated.next().await {
         let args = signal.args()?;
 
-        println!("Matrix {:?}", args.event)
+        println!("Bluetooth {:?}", args.event)
     }
     // No need to specify type of Result each time
 
