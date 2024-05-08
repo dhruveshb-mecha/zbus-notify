@@ -1,0 +1,23 @@
+[package]
+name = "zbus-signal-demo"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "server"
+path = "src/server.rs"
+
+[[bin]]
+name = "client"
+path = "src/client.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.83"
+futures = "0.3.30"
+futures-util = "0.3.30"
+sysinfo = "0.30.12"
+tokio = { version = "1.37.0", features = ["full"] }
+tokio-stream = "0.1.15"
+zbus = { version = "4.2.0", features = ["tokio"] }
